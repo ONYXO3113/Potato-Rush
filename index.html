@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potato Rush — La mine aux patates</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-container">
+
+<!-- ÉCRAN D'ACCUEIL -->
+<div id="home-screen" class="screen">
+<h1>🥔 Potato Rush</h1>
+<h2 class="subtitle">La mine aux patates — Édition Exploration</h2>
+
+ <p class="story">Mamie Patate a besoin de toi : explore les galeries, rapporte 8 trésors et retrouve sa pincée secrète de muscade, le petit ingrédient qui rend sa purée inoubliable. Chaque expédition rapporte des pièces. De retour au hameau, achète des améliorations dans la boutique de Mamie, puis repars par l’entrée de mine.</p>
+
+<div class="controls">
+<h3>Commandes</h3>
+<ul>
+<li><kbd>W A S D</kbd> / <kbd>Flèches</kbd> — Se déplacer</li>
+<li><kbd>Espace</kbd> / <kbd>Maj</kbd> — Esquive rapide et invulnérable</li>
+<li><kbd>Souris</kbd> viser · <kbd>Clic gauche</kbd> tirer</li>
+<li><kbd>E</kbd> — Changer d'arme, entrer dans le royaume ou ouvrir la porte du trône</li>
+<li><kbd>L</kbd> — Carnet de Bord · <kbd>Échap</kbd> Pause</li>
+</ul>
+<p class="heat-help">🔥 <strong>Surchauffe :</strong> chaque tir chauffe l'arme. À 100 % elle bloque ~1,7 s. Tire, souffle, tire.</p>
+</div>
+
+<button id="start-btn" class="btn-play">ENTRER AU HAMEAU</button>
+</div>
+
+<!-- ÉCRAN DE JEU -->
+<div id="game-screen" class="screen hidden">
+<!-- HUD principal -->
+<div id="hud">
+<div class="hud-panel"><span class="label">Score</span><span id="score-value">0</span></div>
+<div class="hud-panel"><span class="label">Vies</span><span id="life-value">3</span></div>
+<div class="hud-panel"><span class="label">Temps</span><span id="timer-value">120</span></div>
+<div class="hud-panel"><span class="label">Trésors</span><span><span id="treasure-value">0</span>/<span id="treasure-total">8</span></div>
+<div class="hud-panel"><span class="label">Secret de Mamie</span><span id="special-value">non</span></div>
+<div class="hud-panel"><span class="label">Niveau</span><span id="level-value">1 / 4</span></div>
+<div class="hud-panel"><span class="label">Esquive</span><span id="dash-value">ESQUIVE prête</span></div>
+<div class="hud-panel"><span class="label">Arme</span><span id="weapon-name">Lance-patates</span><small id="weapon-lock-info"></small></div>
+<div class="hud-panel heat-panel"><span class="label">Chaleur<em id="overheat-warning" class="hidden">⚠ SURCHAUFFE !</em></span><div class="heat-track"><div id="heat-bar"></div></div></div>
+</div>
+
+<!-- Retour entre les expéditions -->
+<canvas id="game-canvas" width="1200" height="800"></canvas>
+
+<!-- Barre objectif + minimap -->
+<div id="bottom-bar">
+<div id="objective-bar"><span id="objective-text">Niveau 1 : Trouve 8 trésors et le boss pour la Muscade secrète de Mamie</span></div>
+<canvas id="minimap" width="160" height="126" title="Minimap — blanc = murs, vert = toi, rouge = ennemis, or = boss, ★ = trésors, 🏠 = sortie"></canvas>
+</div>
+
+<div id="toast" class="hidden"></div>
+</div>
+
+<!-- ÉCRAN DE PAUSE -->
+<div id="house-screen" class="screen hidden">
+  <h1>Le hameau de Mamie</h1>
+  <div class="hub-stats">Pièces : <strong id="coin-value">0</strong> ✦ &nbsp;·&nbsp; Expéditions : <strong id="mission-value">0</strong></div>
+  <p id="house-report" class="house-report">Explore le hameau : boutique à gauche, entrée de mine à droite.</p>
+  <div class="hub-world-wrap">
+    <canvas id="hub-canvas" width="900" height="540" aria-label="Hameau pixel art : boutique à gauche, entrée de mine à droite"></canvas>
+    <div id="hub-hint" class="hub-hint">A / D ou flèches : marcher · W / ↑ : entrer · Boutique à gauche, entrée de mine à droite.</div>
+    <section id="shop-panel" class="shop-panel hidden">
+      <button id="shop-close" class="btn-main shop-close">Fermer</button>
+      <h2>Boutique de Mamie</h2><p>Pièces : <strong id="shop-coins">0</strong> ✦ · Tes améliorations te suivent sous terre.</p>
+      <div class="shop-items">
+        <button class="shop-item" data-upgrade="boots"><b>Bottes de spéléo</b><span>+ vitesse · niveau <i id="boots-level">0</i></span><strong>Prix : <i id="boots-price">35</i> ✦</strong></button>
+        <button class="shop-item" data-upgrade="heart"><b>Soupe revigorante</b><span>+ une vie · niveau <i id="heart-level">0</i></span><strong>Prix : <i id="heart-price">45</i> ✦</strong></button>
+        <button class="shop-item" data-upgrade="lamp"><b>Lampe luciole</b><span>Éclaire plus loin · niveau <i id="lamp-level">0</i></span><strong>Prix : <i id="lamp-price">40</i> ✦</strong></button>
+      </div>
+    </section>
+  </div>
+  <p class="hub-report">Entre dans la boutique à gauche pour acheter des améliorations. Entre dans la mine à droite pour repartir en mission.</p>
+  <button id="house-menu-btn" class="btn-main">Menu principal</button>
+</div>
+
+<div id="pause-screen" class="screen hidden">
+<div class="pause-message">⏸️ PAUSE</div>
+<p>Appuie sur <kbd>Échap</kbd> ou <b>Reprendre</b> pour continuer.</p>
+<button id="resume-btn" class="btn-play">REPRENDRE</button>
+<button id="pause-menu-btn" class="btn-main">Menu principal</button>
+</div>
+
+<!-- CARNET DE BORD (overlay latéral) -->
+<div id="logbook-overlay" class="hidden">
+<div id="logbook-panel">
+<button id="logbook-close" class="btn-main">× Fermer</button>
+<h2>📓 Carnet de Bord</h2>
+<div class="logbook-tabs">
+<button class="logbook-tab active" data-tab="bestiaire">🧪 Bestiaire</button>
+<button class="logbook-tab" data-tab="quetes">📜 Quêtes</button>
+<button class="logbook-tab" data-tab="progression">📊 Progression</button>
+</div>
+<div id="logbook-content"></div>
+</div>
+</div>
+
+<!-- ÉCRAN DE VICTOIRE -->
+<div id="win-screen" class="screen hidden win-screen">
+<div class="end-title">🎉 VICTOIRE !</div>
+<p class="end-message">« Bravo mon petit ! Avec mes trésors et ma pincée secrète de muscade, ma purée sera inoubliable ! » <em>— Mamie Patate</em></p>
+<p>Score final : <strong id="final-score-win">0</strong></p>
+<p>Trésors livrés : <strong id="win-delivered">0</strong> / 8</p>
+<p>Temps restant : <strong id="win-time">0</strong> s</p>
+<button id="replay-win" class="btn-play">NOUVELLE EXPÉDITION</button>
+<button id="win-menu-btn" class="btn-main">Menu principal</button>
+</div>
+
+<!-- ÉCRAN DE DÉFAITE -->
+<div id="lose-screen" class="screen hidden lose-screen">
+<div class="end-title">💀 EXPÉDITION ÉCHOUÉE</div>
+<p class="end-message" id="lose-reason">Mamie Patate t'attend encore...</p>
+<p>Score final : <strong id="final-score-lose">0</strong></p>
+<p>Trésors récupérés : <strong id="lose-collected">0</strong> / 8</p>
+<p>Muscade secrète de Mamie : <strong id="lose-special">non</strong></p>
+<p>Niveau atteint : <strong id="lose-level">1</strong> / 4</p>
+<button id="replay-lose" class="btn-play">RECOMMENCER</button>
+<button id="lose-menu-btn" class="btn-main">Menu principal</button>
+</div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
